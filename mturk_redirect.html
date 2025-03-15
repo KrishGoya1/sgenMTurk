@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Redirecting to Survey</title>
+    <script>
+        // Get the assignment ID and other MTurk parameters
+        function getParameterByName(name) {
+            const url = window.location.href;
+            name = name.replace(/[\[\]]/g, '\\$&');
+            const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
+            const results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+        
+        window.onload = function() {
+            const assignmentId = getParameterByName('assignmentId');
+            const turkSubmitTo = getParameterByName('turkSubmitTo');
+            const hitId = getParameterByName('hitId');
+            const workerId = getParameterByName('workerId');
+            
+            // Redirect to your hosted page with MTurk parameters
+            const redirectUrl = 'https://your-hosting-domain.com/single_page_mturk.html' + 
+                '?assignmentId=' + assignmentId +
+                '&turkSubmitTo=' + turkSubmitTo +
+                '&hitId=' + hitId +
+                '&workerId=' + workerId;
+                
+            // Only redirect if not in preview mode
+            if (assignmentId && assignmentId !== 'ASSIGNMENT_ID_NOT_AVAILABLE') {
+                window.location.href = redirectUrl;
+            } else {
+                document.getElementById('preview-message').style.display = 'block';
+            }
+        };
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        #preview-message {
+            display: none;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>3D Scene Evaluation Task</h1>
+    
+    <div id="preview-message">
+        <h2>Task Preview</h2>
+        <p>This task involves evaluating 139 pairs of 3D scenes based on various criteria.</p>
+        <p>When you accept the HIT, you will be redirected to the evaluation interface.</p>
+        <p>The task will take approximately 60-90 minutes to complete.</p>
+        <p>Reward: $XX.XX</p>
+    </div>
+    
+    <p>Please wait, redirecting to the evaluation task...</p>
+</body>
+</html> 

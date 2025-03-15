@@ -120,6 +120,12 @@
     </style>
 </head>
 <body>
+    <!-- Hidden form for MTurk submission -->
+    <form id="mturk_form" method="post" action="" style="display:none;">
+        <input type="hidden" id="assignmentId" name="assignmentId" value="">
+        <!-- Hidden fields for answers will be added dynamically -->
+    </form>
+
     <div class="progress-bar">
         <div class="progress" id="progress">0%</div>
     </div>
@@ -142,6 +148,29 @@
     </div>
 
     <script>
+        // Get MTurk parameters from URL
+        function getParameterByName(name) {
+            const url = window.location.href;
+            name = name.replace(/[\[\]]/g, '\\$&');
+            const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
+            const results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+        
+        // Set up MTurk form on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const assignmentId = getParameterByName('assignmentId');
+            const turkSubmitTo = getParameterByName('turkSubmitTo');
+            
+            if (assignmentId && turkSubmitTo) {
+                document.getElementById('assignmentId').value = assignmentId;
+                document.getElementById('mturk_form').action = turkSubmitTo + '/mturk/externalSubmit';
+            }
+        });
+
+        // Scene data
         const sceneData = [
   {
     "scene_id": "1",
@@ -163,7 +192,7 @@
   },
   {
     "scene_id": "4",
-    "prompt": "\"The bakery includes a central island with a marble countertop, showcasing a variety of cakes and pies. Along the walls, there are wooden shelves. A small searing area is placed along the front while a cashier desk is placed in the back.\"",       
+    "prompt": "\"The bakery includes a central island with a marble countertop, showcasing a variety of cakes and pies. Along the walls, there are wooden shelves. A small searing area is placed along the front while a cashier desk is placed in the back.\"",
     "video_A_url": "https://sceneprog-nautilus.s3.us-west-1.amazonaws.com/cvpr/sceneprog/bakery_1.mp4",
     "video_B_url": "https://sceneprog-nautilus.s3.us-west-1.amazonaws.com/cvpr/holodeck/bakery_1.mp4"
   },
@@ -589,7 +618,7 @@
   },
   {
     "scene_id": "75",
-    "prompt": "\"The kitchen features a large island in the center along the main wall, with a marble countertop and bar stools on one side. The adjacent wall has a row of cabinets. A small dining area is setup in the corner with a round table and two chairs.\"", 
+    "prompt": "\"The kitchen features a large island in the center along the main wall, with a marble countertop and bar stools on one side. The adjacent wall has a row of cabinets. A small dining area is setup in the corner with a round table and two chairs.\"",
     "video_A_url": "https://sceneprog-nautilus.s3.us-west-1.amazonaws.com/cvpr/sceneprog/kitchen_0.mp4",
     "video_B_url": "https://sceneprog-nautilus.s3.us-west-1.amazonaws.com/cvpr/holodeck/kitchen_0.mp4"
   },
@@ -667,7 +696,7 @@
   },
   {
     "scene_id": "88",
-    "prompt": "\"In a living room, comfortable three-seater sofa is placed along the wall, accompanied by a round coffee table in front. On one side of the sofa, a tall bookshelf holds decor and books, while the other side has a floor lamp for reading.\"",        
+    "prompt": "\"In a living room, comfortable three-seater sofa is placed along the wall, accompanied by a round coffee table in front. On one side of the sofa, a tall bookshelf holds decor and books, while the other side has a floor lamp for reading.\"",
     "video_A_url": "https://sceneprog-nautilus.s3.us-west-1.amazonaws.com/cvpr/sceneprog/living_room_2.mp4",
     "video_B_url": "https://sceneprog-nautilus.s3.us-west-1.amazonaws.com/cvpr/holodeck/living_room_2.mp4"
   },
@@ -859,7 +888,7 @@
   },
   {
     "scene_id": "120",
-    "prompt": "\"The shop includes tall storage units placed in a L-shape arrangement along the back and side walls. One of the walls has a row of mirrors for customers to view themselves wearing the shoes. A small seating area is placed in the center.\"",        
+    "prompt": "\"The shop includes tall storage units placed in a L-shape arrangement along the back and side walls. One of the walls has a row of mirrors for customers to view themselves wearing the shoes. A small seating area is placed in the center.\"",
     "video_A_url": "https://sceneprog-nautilus.s3.us-west-1.amazonaws.com/cvpr/sceneprog/shoe_shop_1.mp4",
     "video_B_url": "https://sceneprog-nautilus.s3.us-west-1.amazonaws.com/cvpr/holodeck/shoe_shop_1.mp4"
   },
@@ -937,7 +966,7 @@
   },
   {
     "scene_id": "133",
-    "prompt": "\"The waiting room features a row of cushioned chairs placed against one wall, with a coffee table in the center holding magazines and a small vase of flowers. A painting hangs on the opposite wall, adding a touch of warmth to the space.\"",        
+    "prompt": "\"The waiting room features a row of cushioned chairs placed against one wall, with a coffee table in the center holding magazines and a small vase of flowers. A painting hangs on the opposite wall, adding a touch of warmth to the space.\"",
     "video_A_url": "https://sceneprog-nautilus.s3.us-west-1.amazonaws.com/cvpr/sceneprog/waiting_room_2.mp4",
     "video_B_url": "https://sceneprog-nautilus.s3.us-west-1.amazonaws.com/cvpr/holodeck/waiting_room_2.mp4"
   },
@@ -977,7 +1006,7 @@
     "video_A_url": "https://sceneprog-nautilus.s3.us-west-1.amazonaws.com/cvpr/sceneprog/wine_cellar_2.mp4",
     "video_B_url": "https://sceneprog-nautilus.s3.us-west-1.amazonaws.com/cvpr/holodeck/wine_cellar_2.mp4"
   }
-];
+]
 
         // Function to create a scene set element
         function createSceneSet(sceneData, index) {
@@ -1053,40 +1082,29 @@
             return sceneSetDiv;
         }
 
-        // Function to load scene data from CSV
-        function loadSceneDataFromCSV(callback) {
-            // In a real implementation, you would load the CSV file and parse it
-            // For this example, we'll just use the hardcoded sceneData array
-            setTimeout(() => {
-                callback(sceneData);
-            }, 500); // Simulate loading delay
-        }
-
         // Initialize the page
         function initPage() {
             const loadingDiv = document.getElementById('loading');
             const form = document.getElementById('evaluationForm');
             const container = document.getElementById('sceneSetsContainer');
             
-            loadSceneDataFromCSV(data => {
-                // Create and append each scene set
-                data.forEach((scene, index) => {
-                    const sceneSetElement = createSceneSet(scene, index);
-                    container.appendChild(sceneSetElement);
-                });
-                
-                // Hide loading, show form
-                loadingDiv.style.display = 'none';
-                form.style.display = 'block';
-                
-                // Setup event listeners for radio buttons
-                document.querySelectorAll('input[type="radio"]').forEach(radio => {
-                    radio.addEventListener('change', updateProgress);
-                });
-                
-                // Update progress initially
-                updateProgress();
+            // Create and append each scene set directly (no CSV loading)
+            sceneData.forEach((scene, index) => {
+                const sceneSetElement = createSceneSet(scene, index);
+                container.appendChild(sceneSetElement);
             });
+            
+            // Hide loading, show form
+            loadingDiv.style.display = 'none';
+            form.style.display = 'block';
+            
+            // Setup event listeners for radio buttons
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.addEventListener('change', updateProgress);
+            });
+            
+            // Update progress initially
+            updateProgress();
         }
 
         // Track progress
@@ -1125,12 +1143,26 @@
                 answers[key] = value;
             }
             
-            // Here you would typically submit the data to your server or MTurk
-            console.log('Submitting answers:', answers);
-            alert('Thank you for completing the evaluation!');
+            // Populate the MTurk form with the answers
+            const mturkForm = document.getElementById('mturk_form');
             
-            // For MTurk, you would add:
-            document.getElementById('mturk_form').submit();
+            // Add all answers as hidden fields
+            for (let [key, value] of Object.entries(answers)) {
+                const hiddenField = document.createElement('input');
+                hiddenField.type = 'hidden';
+                hiddenField.name = key;
+                hiddenField.value = value;
+                mturkForm.appendChild(hiddenField);
+            }
+            
+            // Submit to MTurk if in MTurk environment, otherwise just show alert
+            if (getParameterByName('assignmentId') && 
+                getParameterByName('assignmentId') !== 'ASSIGNMENT_ID_NOT_AVAILABLE') {
+                mturkForm.submit();
+            } else {
+                console.log('Submitting answers:', answers);
+                alert('Thank you for completing the evaluation!');
+            }
         });
         
         // Navigation functions
