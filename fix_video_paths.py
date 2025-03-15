@@ -1,8 +1,14 @@
 import csv
 import os
 
-def update_video_paths(input_csv, output_csv):
-    """Update video paths in CSV to reflect new directory structure"""
+S3_BASE_URL = "https://sceneprog-nautilus.s3.us-west-1.amazonaws.com/cvpr/"
+PATH_MAPPING = {
+    'sceneprog': 'sceneprog',
+    'nn': 'holodeck'
+}
+
+def update_video_urls(input_csv, output_csv):
+    """Convert local paths to S3 URLs with proper directory mapping"""
     with open(input_csv, 'r') as infile, open(output_csv, 'w', newline='') as outfile:
         reader = csv.DictReader(infile)
         
@@ -13,13 +19,22 @@ def update_video_paths(input_csv, output_csv):
         writer.writeheader()
         
         for row in reader:
-            # Update paths for both video columns
-            row['video_A_url'] = row['video_A_url'].replace('../', './', 1)
-            row['video_B_url'] = row['video_B_url'].replace('../', './', 1)
+            # Process video A URL
+            original_path = row['video_A_url']
+            dir_name, file_name = os.path.split(original_path.replace('./', ''))
+            s3_dir = PATH_MAPPING.get(dir_name, dir_name)
+            row['video_A_url'] = f"{S3_BASE_URL}{s3_dir}/{file_name}"
+            
+            # Process video B URL
+            original_path = row['video_B_url']
+            dir_name, file_name = os.path.split(original_path.replace('./', ''))
+            s3_dir = PATH_MAPPING.get(dir_name, dir_name)
+            row['video_B_url'] = f"{S3_BASE_URL}{s3_dir}/{file_name}"
+            
             writer.writerow(row)
 
 if __name__ == '__main__':
     input_csv = 'scene_data.csv'
-    output_csv = 'scene_data_updated.csv'
-    update_video_paths(input_csv, output_csv)
-    print(f"Updated CSV created: {output_csv}") 
+    output_csv = 'scene_data_s3.csv'
+    update_video_urls(input_csv, output_csv)
+    print(f"Updated S3 URLs saved to {output_csv}") 
